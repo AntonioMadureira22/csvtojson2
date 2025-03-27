@@ -5,17 +5,35 @@ const App = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [jsonData, setJsonData] = useState(null);
   const [downloadReady, setDownloadReady] = useState(false); // New state for download ready message
+  const [error, setError] = useState(""); // New state to hold error messages
 
   // Handle CSV file upload
   const handleFileChange = (e) => {
     const file = e.target.files[0];
-    if (file && file.type === 'text/csv') {
-      setCsvData(file);
-      setJsonData(null);  // Reset json data when a new file is selected
-      setDownloadReady(false); // Reset download ready message when new file is selected
-    } else {
-      alert('Please upload a valid CSV file');
+    setError(""); // Reset error state on new file selection
+
+    // Check if file is empty
+    if (!file) {
+      setError("No file selected. Please upload a CSV file.");
+      return;
     }
+
+    // Check if the file is a valid CSV file
+    if (file.type !== 'text/csv') {
+      setError("Invalid file type. Please upload a valid CSV file.");
+      return;
+    }
+
+    // Check if the file size is not too large (example: limit to 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      setError("File size is too large. Please upload a file smaller than 10MB.");
+      return;
+    }
+
+    // File is valid, set it as the CSV data
+    setCsvData(file);
+    setJsonData(null);  // Reset json data when a new file is selected
+    setDownloadReady(false); // Reset download ready message
   };
 
   // Convert CSV to JSON
@@ -28,6 +46,13 @@ const App = () => {
     reader.onload = () => {
       const text = reader.result;
       const rows = text.split('\n').map(row => row.split(','));
+
+      // Check for valid CSV format (at least one row and column)
+      if (rows.length < 2 || rows[0].length < 1) {
+        setError("Invalid CSV format. Please make sure your file has data.");
+        setIsLoading(false);
+        return;
+      }
 
       const keys = rows[0];
       const json = rows.slice(1).map(row => {
@@ -42,11 +67,18 @@ const App = () => {
       setDownloadReady(true); // Set download ready message
     };
 
+    reader.onerror = () => {
+      setError("Error reading the file. Please try again.");
+      setIsLoading(false);
+    };
+
     reader.readAsText(csvData);
   };
 
   // Download JSON file
   const downloadJson = () => {
+    if (!jsonData) return;
+
     const jsonStr = JSON.stringify(jsonData, null, 2);
     const blob = new Blob([jsonStr], { type: 'application/json' });
     const link = document.createElement('a');
@@ -61,7 +93,7 @@ const App = () => {
       {/* Banner with moving text */}
       <div className="bg-blue-700 text-white p-3 fixed top-0 left-0 w-full overflow-hidden z-10">
         <div className="animate-marquee whitespace-nowrap">
-          Welcome, thank you for visiting! Updates will be made as time goes on.
+          Welcome, thank you for visiting! Updates will be made.
         </div>
       </div>
 
@@ -77,6 +109,9 @@ const App = () => {
             className="mb-4 p-2 bg-gray-700 text-white rounded-lg w-full"
           />
           
+          {/* Error message display */}
+          {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+
           <button
             onClick={convertCsvToJson}
             className="w-full py-2 bg-blue-600 rounded-lg hover:bg-blue-700 text-lg font-semibold disabled:opacity-50"
@@ -112,7 +147,7 @@ const App = () => {
             rel="noopener noreferrer" 
             className="font-semibold text-blue-400 hover:underline"
           >
-            {' '} Antonio Madureira
+            Antonio Madureira
           </a>
           {' '}| Follow me on 
           <a 
@@ -121,7 +156,7 @@ const App = () => {
             rel="noopener noreferrer" 
             className="font-semibold text-blue-400 hover:underline"
           >
-           {' '} X.com
+            Twitter
           </a>
         </p>
       </footer>
