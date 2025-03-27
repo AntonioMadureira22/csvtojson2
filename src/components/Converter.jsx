@@ -9,6 +9,7 @@ const App = () => {
   const [downloadReady, setDownloadReady] = useState(false);
   const [error, setError] = useState("");
   const [isFileUploaded, setIsFileUploaded] = useState(false); // State to track if file is uploaded
+  const [progress, setProgress] = useState(0); // State to track progress of file reading
 
   // Handle CSV file upload
   const handleFileChange = (file) => {
@@ -43,12 +44,21 @@ const App = () => {
     setIsFileUploaded(true); // Set file upload success state
   };
 
-  // Convert CSV to JSON
+  // Convert CSV to JSON with progress tracking
   const convertCsvToJson = () => {
     if (!csvData) return;
 
     setIsLoading(true);  // Start loading state
     const reader = new FileReader();
+
+    // Track file reading progress
+    reader.onprogress = (event) => {
+      if (event.lengthComputable) {
+        const percent = (event.loaded / event.total) * 100;
+        setProgress(percent); // Update progress state
+        console.log(`Progress: ${percent}%`); // Add console log to track progress
+      }
+    };
 
     reader.onload = () => {
       const text = reader.result;
@@ -103,7 +113,6 @@ const App = () => {
 
   return (
     <div className="min-h-screen flex flex-col justify-between bg-gradient-to-r from-indigo-600 to-blue-500 text-white p-6">
-      
       {/* Banner with moving text */}
       <div className="bg-blue-700 text-white p-3 fixed top-0 left-0 w-full overflow-hidden z-10">
         <div className="animate-marquee whitespace-nowrap">
@@ -111,7 +120,7 @@ const App = () => {
         </div>
       </div>
 
-      <div className="text-center max-w-lg w-full mx-auto flex-grow mt-20"> {/* Added margin-top */}
+      <div className="text-center max-w-lg w-full mx-auto flex-grow mt-20">
         <h1 className="text-4xl font-bold mb-6">CSV to JSON Converter</h1>
         <p className="mb-6 text-lg">Convert your CSV data into JSON format easily</p>
         
@@ -141,6 +150,27 @@ const App = () => {
           >
             {isLoading ? 'Converting...' : 'Convert to JSON'}
           </button>
+
+          {/* Progress Bar */}
+          {isLoading && (
+            <div className="mt-4">
+              <div className="relative pt-1">
+                <div className="flex mb-2 items-center justify-between">
+                  <div>
+                    <span className="text-sm font-semibold inline-block py-1 uppercase">Progress</span>
+                  </div>
+                </div>
+                <div className="flex mb-2">
+                  <div className="w-full bg-gray-200 rounded-full">
+                    <div
+                      className="bg-blue-600 text-xs font-semibold text-center p-0.5 leading-none rounded-full"
+                      style={{ width: `${progress}%` }}
+                    ></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Show message when conversion is complete */}
           {downloadReady && !isLoading && (
