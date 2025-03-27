@@ -1,39 +1,46 @@
 import React, { useState } from 'react';
+import { useDropzone } from 'react-dropzone'; // Import react-dropzone
+import { FaCheckCircle } from 'react-icons/fa'; // Import check mark icon
 
 const App = () => {
   const [csvData, setCsvData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [jsonData, setJsonData] = useState(null);
-  const [downloadReady, setDownloadReady] = useState(false); // New state for download ready message
-  const [error, setError] = useState(""); // New state to hold error messages
+  const [downloadReady, setDownloadReady] = useState(false);
+  const [error, setError] = useState("");
+  const [isFileUploaded, setIsFileUploaded] = useState(false); // State to track if file is uploaded
 
   // Handle CSV file upload
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
+  const handleFileChange = (file) => {
+    const uploadedFile = file[0];
     setError(""); // Reset error state on new file selection
 
     // Check if file is empty
-    if (!file) {
+    if (!uploadedFile) {
       setError("No file selected. Please upload a CSV file.");
+      setIsFileUploaded(false); // Reset file upload state
       return;
     }
 
     // Check if the file is a valid CSV file
-    if (file.type !== 'text/csv') {
+    if (uploadedFile.type !== 'text/csv') {
       setError("Invalid file type. Please upload a valid CSV file.");
+      setIsFileUploaded(false); // Reset file upload state
       return;
     }
 
     // Check if the file size is not too large (example: limit to 10MB)
-    if (file.size > 10 * 1024 * 1024) {
+    if (uploadedFile.size > 10 * 1024 * 1024) {
       setError("File size is too large. Please upload a file smaller than 10MB.");
+      setIsFileUploaded(false); // Reset file upload state
       return;
     }
 
-    // File is valid, set it as the CSV data
-    setCsvData(file);
+    // File is valid, set it as the CSV data and update file uploaded status
+    setCsvData(uploadedFile);
     setJsonData(null);  // Reset json data when a new file is selected
     setDownloadReady(false); // Reset download ready message
+    setIsFileUploaded(true); // Set file upload success state
   };
 
   // Convert CSV to JSON
@@ -87,6 +94,13 @@ const App = () => {
     link.click();
   };
 
+  // React-dropzone setup
+  const { getRootProps, getInputProps } = useDropzone({
+    accept: '.csv',
+    onDrop: handleFileChange,
+    multiple: false, // Ensure only one file can be uploaded at a time
+  });
+
   return (
     <div className="min-h-screen flex flex-col justify-between bg-gradient-to-r from-indigo-600 to-blue-500 text-white p-6">
       
@@ -102,13 +116,21 @@ const App = () => {
         <p className="mb-6 text-lg">Convert your CSV data into JSON format easily</p>
         
         <div className="bg-gray-800 p-6 rounded-xl shadow-xl w-full">
-          <input
-            type="file"
-            accept=".csv"
-            onChange={handleFileChange}
-            className="mb-4 p-2 bg-gray-700 text-white rounded-lg w-full"
-          />
           
+          {/* Drag and Drop area */}
+          <div {...getRootProps()} className="border-4 border-dashed border-blue-500 p-6 rounded-lg mb-4 text-center">
+            <input {...getInputProps()} />
+            <p className="text-lg">Drag & Drop your CSV file here</p>
+            <p className="text-sm text-gray-400">or click to select a file</p>
+
+            {/* Display green check when file is uploaded */}
+            {isFileUploaded && (
+              <div className="mt-4 text-green-500">
+                <FaCheckCircle className="inline-block mr-2" /> File uploaded successfully
+              </div>
+            )}
+          </div>
+
           {/* Error message display */}
           {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
 
@@ -142,21 +164,21 @@ const App = () => {
         <p>
           Created by 
           <a 
-            href="https://your-portfolio-website.com" 
+            href="https://antoniomadureirasportfolio.netlify.app/" 
             target="_blank" 
             rel="noopener noreferrer" 
             className="font-semibold text-blue-400 hover:underline"
           >
-            Antonio Madureira
+            {' '} Antonio Madureira
           </a>
           {' '}| Follow me on 
           <a 
-            href="https://twitter.com/your-twitter-handle" 
+            href="X.com/tonemadureira" 
             target="_blank" 
             rel="noopener noreferrer" 
             className="font-semibold text-blue-400 hover:underline"
           >
-            Twitter
+            {' '} X.com
           </a>
         </p>
       </footer>
