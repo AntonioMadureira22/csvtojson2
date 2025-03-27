@@ -10,6 +10,7 @@ const App = () => {
   const [error, setError] = useState("");
   const [isFileUploaded, setIsFileUploaded] = useState(false); // State to track if file is uploaded
   const [progress, setProgress] = useState(0); // State to track progress of file reading
+  const [isDarkMode, setIsDarkMode] = useState(false); // State to toggle dark mode
 
   // Handle CSV file upload
   const handleFileChange = (file) => {
@@ -112,7 +113,7 @@ const App = () => {
   });
 
   return (
-    <div className="min-h-screen flex flex-col justify-between bg-gradient-to-r from-indigo-600 to-blue-500 text-white p-6">
+    <div className={`min-h-screen flex flex-col justify-between ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-gradient-to-r from-indigo-600 to-blue-500 text-white'} p-6`}>
       {/* Banner with moving text */}
       <div className="bg-blue-700 text-white p-3 fixed top-0 left-0 w-full overflow-hidden z-10">
         <div className="animate-marquee whitespace-nowrap">
@@ -124,13 +125,20 @@ const App = () => {
         <h1 className="text-4xl font-bold mb-6">CSV to JSON Converter</h1>
         <p className="mb-6 text-lg">Convert your CSV data into JSON format easily</p>
         
-        <div className="bg-gray-800 p-6 rounded-xl shadow-xl w-full">
+        <div className={`bg-gray-800 p-6 rounded-xl shadow-xl w-full ${isDarkMode ? 'text-white' : 'text-black'}`}>
+          {/* Dark Mode Toggle */}
+          <button 
+            onClick={() => setIsDarkMode(prevMode => !prevMode)} 
+            className="w-full py-2 bg-gray-700 rounded-lg hover:bg-gray-600 text-lg font-semibold mb-4"
+          >
+            Toggle Dark Mode
+          </button>
           
           {/* Drag and Drop area */}
-          <div {...getRootProps()} className="border-4 border-dashed border-blue-500 p-6 rounded-lg mb-4 text-center">
+          <div {...getRootProps()} className={`border-4 border-dashed ${isDarkMode ? 'border-blue-500' : 'border-blue-700'} p-6 rounded-lg mb-4 text-center ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
             <input {...getInputProps()} />
-            <p className="text-lg">Drag & Drop your CSV file here</p>
-            <p className="text-sm text-gray-400">or click to select a file</p>
+            <p className={`text-lg ${isDarkMode ? 'text-white' : 'text-black'}`}>Drag & Drop your CSV file here</p>
+            <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>or click to select a file</p>
 
             {/* Display green check when file is uploaded */}
             {isFileUploaded && (
@@ -145,7 +153,7 @@ const App = () => {
 
           <button
             onClick={convertCsvToJson}
-            className="w-full py-2 bg-blue-600 rounded-lg hover:bg-blue-700 text-lg font-semibold disabled:opacity-50"
+            className="w-full py-2 bg-blue-600 rounded-lg hover:bg-blue-700 text-lg font-semibold disabled:opacity-50 mt-6"
             disabled={isLoading || !csvData}
           >
             {isLoading ? 'Converting...' : 'Convert to JSON'}
